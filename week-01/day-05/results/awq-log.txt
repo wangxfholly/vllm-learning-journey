@@ -1,0 +1,40 @@
+
+############################################################
+# 正在测试: AWQ 4bit 量化版
+############################################################
+INFO 06-12 16:02:04 __init__.py:207] Automatically detected platform cuda.
+INFO 06-12 16:02:08 config.py:549] This model supports multiple tasks: {'classify', 'score', 'generate', 'embed', 'reward'}. Defaulting to 'generate'.
+INFO 06-12 16:02:09 awq_marlin.py:114] The model is convertible to awq_marlin during runtime. Using awq_marlin kernel.
+INFO 06-12 16:02:09 llm_engine.py:234] Initializing a V0 LLM engine (v0.7.3) with config: model='/data00/home/wangxiaofei.holly/vllm-learning-journey/models/Qwen2.5-1.5B-Instruct-AWQ', speculative_config=None, tokenizer='/data00/home/wangxiaofei.holly/vllm-learning-journey/models/Qwen2.5-1.5B-Instruct-AWQ', skip_tokenizer_init=False, tokenizer_mode=auto, revision=None, override_neuron_config=None, tokenizer_revision=None, trust_remote_code=False, dtype=torch.float16, max_seq_len=2048, download_dir=None, load_format=auto, tensor_parallel_size=1, pipeline_parallel_size=1, disable_custom_all_reduce=False, quantization=awq_marlin, enforce_eager=False, kv_cache_dtype=auto,  device_config=cuda, decoding_config=DecodingConfig(guided_decoding_backend='xgrammar'), observability_config=ObservabilityConfig(otlp_traces_endpoint=None, collect_model_forward_time=False, collect_model_execute_time=False), seed=0, served_model_name=/data00/home/wangxiaofei.holly/vllm-learning-journey/models/Qwen2.5-1.5B-Instruct-AWQ, num_scheduler_steps=1, multi_step_stream_outputs=True, enable_prefix_caching=False, chunked_prefill_enabled=False, use_async_output_proc=True, disable_mm_preprocessor_cache=False, mm_processor_kwargs=None, pooler_config=None, compilation_config={"splitting_ops":[],"compile_sizes":[],"cudagraph_capture_sizes":[256,248,240,232,224,216,208,200,192,184,176,168,160,152,144,136,128,120,112,104,96,88,80,72,64,56,48,40,32,24,16,8,4,2,1],"max_capture_size":256}, use_cached_outputs=False, 
+INFO 06-12 16:02:09 cuda.py:229] Using Flash Attention backend.
+INFO 06-12 16:02:10 model_runner.py:1110] Starting to load model /data00/home/wangxiaofei.holly/vllm-learning-journey/models/Qwen2.5-1.5B-Instruct-AWQ...
+Loading safetensors checkpoint shards:   0% Completed | 0/1 [00:00<?, ?it/s]
+Loading safetensors checkpoint shards: 100% Completed | 1/1 [00:00<00:00,  4.97it/s]
+Loading safetensors checkpoint shards: 100% Completed | 1/1 [00:00<00:00,  4.97it/s]
+
+INFO 06-12 16:02:11 model_runner.py:1115] Loading model weights took 1.1023 GB
+INFO 06-12 16:02:11 worker.py:267] Memory profiling takes 0.56 seconds
+INFO 06-12 16:02:11 worker.py:267] the current vLLM instance can use total_gpu_memory (21.95GiB) x gpu_memory_utilization (0.85) = 18.66GiB
+INFO 06-12 16:02:11 worker.py:267] model weights take 1.10GiB; non_torch_memory takes 0.04GiB; PyTorch activation peak memory takes 1.39GiB; the rest of the memory reserved for KV Cache is 16.12GiB.
+INFO 06-12 16:02:11 executor_base.py:111] # cuda blocks: 37730, # CPU blocks: 9362
+INFO 06-12 16:02:11 executor_base.py:116] Maximum concurrency for 2048 tokens per request: 294.77x
+INFO 06-12 16:02:13 model_runner.py:1434] Capturing cudagraphs for decoding. This may lead to unexpected consequences if the model is not static. To run the model in eager mode, set 'enforce_eager=True' or use '--enforce-eager' in the CLI. If out-of-memory error occurs during cudagraph capture, consider decreasing `gpu_memory_utilization` or switching to eager mode. You can also reduce the `max_num_seqs` as needed to decrease memory usage.
+Capturing CUDA graph shapes:   0%|          | 0/35 [00:00<?, ?it/s]Capturing CUDA graph shapes:   3%|▎         | 1/35 [00:00<00:10,  3.36it/s]Capturing CUDA graph shapes:   6%|▌         | 2/35 [00:00<00:09,  3.49it/s]Capturing CUDA graph shapes:   9%|▊         | 3/35 [00:00<00:09,  3.53it/s]Capturing CUDA graph shapes:  11%|█▏        | 4/35 [00:01<00:08,  3.64it/s]Capturing CUDA graph shapes:  14%|█▍        | 5/35 [00:01<00:08,  3.68it/s]Capturing CUDA graph shapes:  17%|█▋        | 6/35 [00:01<00:07,  3.71it/s]Capturing CUDA graph shapes:  20%|██        | 7/35 [00:01<00:07,  3.77it/s]Capturing CUDA graph shapes:  23%|██▎       | 8/35 [00:02<00:07,  3.73it/s]Capturing CUDA graph shapes:  26%|██▌       | 9/35 [00:02<00:06,  3.78it/s]Capturing CUDA graph shapes:  29%|██▊       | 10/35 [00:02<00:06,  3.73it/s]Capturing CUDA graph shapes:  31%|███▏      | 11/35 [00:02<00:06,  3.77it/s]Capturing CUDA graph shapes:  34%|███▍      | 12/35 [00:03<00:06,  3.82it/s]Capturing CUDA graph shapes:  37%|███▋      | 13/35 [00:03<00:05,  3.85it/s]Capturing CUDA graph shapes:  40%|████      | 14/35 [00:03<00:05,  3.86it/s]Capturing CUDA graph shapes:  43%|████▎     | 15/35 [00:03<00:05,  3.89it/s]Capturing CUDA graph shapes:  46%|████▌     | 16/35 [00:04<00:04,  3.92it/s]Capturing CUDA graph shapes:  49%|████▊     | 17/35 [00:04<00:04,  3.93it/s]Capturing CUDA graph shapes:  51%|█████▏    | 18/35 [00:04<00:04,  3.91it/s]Capturing CUDA graph shapes:  54%|█████▍    | 19/35 [00:05<00:04,  3.93it/s]Capturing CUDA graph shapes:  57%|█████▋    | 20/35 [00:05<00:03,  3.95it/s]Capturing CUDA graph shapes:  60%|██████    | 21/35 [00:05<00:03,  3.88it/s]Capturing CUDA graph shapes:  63%|██████▎   | 22/35 [00:05<00:03,  3.89it/s]Capturing CUDA graph shapes:  66%|██████▌   | 23/35 [00:06<00:03,  3.82it/s]Capturing CUDA graph shapes:  69%|██████▊   | 24/35 [00:06<00:02,  3.82it/s]Capturing CUDA graph shapes:  71%|███████▏  | 25/35 [00:06<00:02,  3.79it/s]Capturing CUDA graph shapes:  74%|███████▍  | 26/35 [00:06<00:02,  3.78it/s]Capturing CUDA graph shapes:  77%|███████▋  | 27/35 [00:07<00:02,  3.73it/s]Capturing CUDA graph shapes:  80%|████████  | 28/35 [00:07<00:01,  3.61it/s]Capturing CUDA graph shapes:  83%|████████▎ | 29/35 [00:07<00:01,  3.53it/s]Capturing CUDA graph shapes:  86%|████████▌ | 30/35 [00:07<00:01,  3.59it/s]Capturing CUDA graph shapes:  89%|████████▊ | 31/35 [00:08<00:01,  3.70it/s]Capturing CUDA graph shapes:  91%|█████████▏| 32/35 [00:08<00:00,  3.76it/s]Capturing CUDA graph shapes:  94%|█████████▍| 33/35 [00:08<00:00,  3.72it/s]Capturing CUDA graph shapes:  97%|█████████▋| 34/35 [00:09<00:00,  3.80it/s]Capturing CUDA graph shapes: 100%|██████████| 35/35 [00:09<00:00,  3.87it/s]Capturing CUDA graph shapes: 100%|██████████| 35/35 [00:09<00:00,  3.78it/s]
+INFO 06-12 16:02:23 model_runner.py:1562] Graph capturing finished in 9 secs, took 0.23 GiB
+INFO 06-12 16:02:23 llm_engine.py:436] init engine (profile, create kv cache, warmup model) took 12.12 seconds
+
+============================================================
+【AWQ 4bit 量化版】结果
+============================================================
+权重显存(allocated): 17.24 GB
+速度: 128 tokens / 0.85s = 150.3 tokens/s
+输出质量:
+过拟合是指模型在训练数据上表现得非常好，但在测试数据上表现得非常差。这通常发生在模型过于复杂，以至于它能够学习到训练数据中的噪声，而不是数据中的模式。过拟合通常表现为模型在训练数据上的准确率非常高，但在测试数据上的准确率非常低。
+
+避免过拟合的方法有多种，以下是一些常见的方法：
+
+1. 减少模型复杂度：通过减少模型的参数数量，或者通过使用更简单的模型结构，可以减少模型的复杂度，从而降低过拟合的风险。
+
+2. 增加数据量：
+============================================================
+[rank0]:[W612 16:02:24.648829427 ProcessGroupNCCL.cpp:1250] Warning: WARNING: process group has NOT been destroyed before we destruct ProcessGroupNCCL. On normal program exit, the application should call destroy_process_group to ensure that any pending NCCL operations have finished in this process. In rare cases this process can exit before this point and block the progress of another member of the process group. This constraint has always been present,  but this warning has only been added since PyTorch 2.4 (function operator())
