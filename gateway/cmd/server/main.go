@@ -1,14 +1,17 @@
 package main
 
 import (
+"context"
 "flag"
 "log"
 "net"
 "strings"
+"time"
 
 "google.golang.org/grpc"
 
 "vllm-gateway/internal/balancer"
+"vllm-gateway/internal/health"
 "vllm-gateway/internal/server"
 "vllm-gateway/internal/vllm"
 pb "vllm-gateway/proto"
@@ -16,28 +19,32 @@ pb "vllm-gateway/proto"
 
 func main() {
 grpcAddr := flag.String("addr", ":50051", "gRPC 网关监听地址")
-// 用逗号分隔多个 vLLM 后端地址。方案A可填同一个地址两次模拟多实例
-backends := flag.String("backends", "http://localhost:8000,http://localhost:8000", "vLLM 实例地址,逗号分隔")
+backends := flag.String("backends", "http://localhost:8000,http://localhost:8001", "vLLM 实例地址,逗号分隔")
 model := flag.String("model", "qwen7b", "served-model-name")
+hcInterval := flag.Duration("hc-interval", 5*time.Second, "健康检查间隔")
+hcTimeout := flag.Duration("hc-timeout", 3*time.Second, "单次探活超时")
 flag.Parse()
 
-// 1. 解析后端列表,构建实例池
 urls := strings.Split(*backends, ",")
 instances := make([]*balancer.Instance, 0, len(urls))
 for i, u := range urls {
 u = strings.TrimSpace(u)
 instances = append(instances, &balancer.Instance{
-ID:     "vllm-" + itoa(i), // vllm-0, vllm-1...
+ID:     "vllm-" + itoa(i),
 Client: vllm.NewClient(u, *model),
 })
 log.Printf("注册实例 vllm-%d -> %s", i, u)
 }
 
-// 2. 创建负载均衡器 + 网关服务
 lb := balancer.New(instances)
+
+// 启动后台健康检查器
+checker := health.New(lb, *hcInterval, *hcTimeout)
+checker.Start(context.Background())
+log.Printf("🩺 健康检查器已启动,间隔=%v 超时=%v", *hcInterval, *hcTimeout)
+
 gw := server.NewGatewayServer(lb)
 
-// 3. 启动 gRPC server
 lis, err := net.Listen("tcp", *grpcAddr)
 if err != nil {
 log.Fatalf("监听失败: %v", err)
@@ -51,7 +58,6 @@ log.Fatalf("服务启动失败: %v", err)
 }
 }
 
-// 小工具:int 转 string(避免引入额外包)
 func itoa(i int) string {
 if i == 0 {
 return "0"

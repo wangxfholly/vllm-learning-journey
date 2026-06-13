@@ -112,3 +112,35 @@ msgs = append(msgs, chatMessage{Role: p[0], Content: p[1]})
 }
 return msgs
 }
+
+// ---- Day25: 健康检查 ----
+
+// HealthShallow 浅探活:GET /health,只看进程/端口是否活着
+func (c *Client) HealthShallow(ctx context.Context) error {
+url := c.BaseURL + "/health"
+req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+if err != nil {
+return err
+}
+resp, err := c.httpClient.Do(req)
+if err != nil {
+return fmt.Errorf("浅探活失败(端口不通): %w", err)
+}
+defer resp.Body.Close()
+if resp.StatusCode != http.StatusOK {
+return fmt.Errorf("浅探活非200: %d", resp.StatusCode)
+}
+return nil
+}
+
+// HealthDeep 深探活:发一个真实的短推理,验证 GPU 真的能算
+// 能抓住"端口通但 GPU OOM/假死"这类浅探活漏掉的故障
+func (c *Client) HealthDeep(ctx context.Context) error {
+msgs := []chatMessage{{Role: "user", Content: "hi"}}
+// max_tokens=1,最小代价验证推理链路通畅
+_, err := c.Chat(ctx, msgs, 0.0, 1)
+if err != nil {
+return fmt.Errorf("深探活失败(GPU不可用/假死): %w", err)
+}
+return nil
+}
