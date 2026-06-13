@@ -77,3 +77,25 @@ cnt++
 }
 return cnt
 }
+
+// PickHealthyOrder 返回一个健康实例的有序列表,用于 failover:
+// 先按 round-robin 选出起点,再把其余健康实例依次排在后面。
+// server 拿到这个列表后,从头到尾依次尝试,直到某个成功。
+func (b *Balancer) PickHealthyOrder() []*Instance {
+b.mu.RLock()
+defer b.mu.RUnlock()
+n := len(b.instances)
+if n == 0 {
+return nil
+}
+start := atomic.AddUint64(&b.rrCounter, 1)
+order := make([]*Instance, 0, n)
+for offset := 0; offset < n; offset++ {
+idx := (start + uint64(offset)) % uint64(n)
+inst := b.instances[idx]
+if inst.IsHealthy() {
+order = append(order, inst)
+}
+}
+return order
+}
