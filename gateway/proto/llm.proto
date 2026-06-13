@@ -1,0 +1,50 @@
+syntax = "proto3";
+
+package llm;
+
+// Go 包路径,生成代码会用到。后面 go module 名要对应上
+option go_package = "vllm-gateway/proto/llm;llm";
+
+// ============ 服务定义 ============
+service LLMGateway {
+  // 一问一答:客户端发请求,等完整结果返回(适合后台批处理、对延迟不敏感场景)
+  rpc Chat(ChatRequest) returns (ChatResponse);
+
+  // 流式:服务端持续推送 token 增量(适合前端实时打字机效果)
+  // stream 关键字加在返回值上 = server-streaming
+  rpc ChatStream(ChatRequest) returns (stream ChatStreamChunk);
+}
+
+// ============ 请求 ============
+message ChatRequest {
+  // 多轮对话消息列表
+  repeated Message messages = 1;
+  // 采样温度,0 表示确定性输出
+  float temperature = 2;
+  // 最大生成 token 数
+  int32 max_tokens = 3;
+  // 客户端可选传入,用于链路追踪;为空则网关生成
+  string trace_id = 4;
+}
+
+message Message {
+  string role = 1;     // system / user / assistant
+  string content = 2;
+}
+
+// ============ 非流式响应 ============
+message ChatResponse {
+  string content = 1;          // 完整生成内容
+  string trace_id = 2;         // 回传链路 ID
+  string instance_id = 3;      // 实际处理请求的 vLLM 实例,便于排查
+  int32 prompt_tokens = 4;
+  int32 completion_tokens = 5;
+}
+
+// ============ 流式响应(每个 chunk 是一个增量)============
+message ChatStreamChunk {
+  string delta = 1;            // 本次新增的文本片段(不是全文!)
+  bool finished = 2;           // 是否结束
+  string trace_id = 3;
+  string instance_id = 4;
+}
