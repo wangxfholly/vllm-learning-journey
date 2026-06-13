@@ -2,57 +2,60 @@ package server
 
 import (
 "context"
+"fmt"
 "log"
 
 "github.com/google/uuid"
 
+"vllm-gateway/internal/balancer"
 "vllm-gateway/internal/vllm"
 pb "vllm-gateway/proto"
 )
 
 // GatewayServer 实现 pb.LLMGatewayServer 接口
 type GatewayServer struct {
-pb.UnimplementedLLMGatewayServer // 嵌入空实现,未实现的方法自动有默认行为
-vllmClient                       *vllm.Client
-instanceID                       string // 当前转发到的 vLLM 实例标识(Day23 只有一个)
+pb.UnimplementedLLMGatewayServer
+lb *balancer.Balancer // 不再是单个 client,而是负载均衡器
 }
 
-func NewGatewayServer(client *vllm.Client, instanceID string) *GatewayServer {
-return &GatewayServer{
-vllmClient: client,
-instanceID: instanceID,
-}
+func NewGatewayServer(lb *balancer.Balancer) *GatewayServer {
+return &GatewayServer{lb: lb}
 }
 
-// Chat 实现非流式接口:gRPC 入参 -> 调 vLLM -> 填 gRPC 返回
+// Chat 实现非流式接口
 func (s *GatewayServer) Chat(ctx context.Context, req *pb.ChatRequest) (*pb.ChatResponse, error) {
-// 1. trace_id:客户端没传就生成一个(为后续链路追踪埋点)
 traceID := req.TraceId
 if traceID == "" {
 traceID = uuid.NewString()
 }
-log.Printf("[Chat] trace_id=%s instance=%s 收到请求, messages=%d", traceID, s.instanceID, len(req.Messages))
 
-// 2. 把 gRPC 消息转成 vLLM client 需要的格式
+// 1. 负载均衡:选一个实例
+inst := s.lb.Pick()
+if inst == nil {
+return nil, fmt.Errorf("无可用 vLLM 实例")
+}
+log.Printf("[Chat] trace_id=%s 路由到实例=%s, messages=%d", traceID, inst.ID, len(req.Messages))
+
+// 2. 转换消息格式
 pairs := make([][2]string, 0, len(req.Messages))
 for _, m := range req.Messages {
 pairs = append(pairs, [2]string{m.Role, m.Content})
 }
 messages := vllm.BuildMessages(pairs)
 
-// 3. 调 vLLM
-result, err := s.vllmClient.Chat(ctx, messages, req.Temperature, req.MaxTokens)
+// 3. 调被选中的实例
+result, err := inst.Client.Chat(ctx, messages, req.Temperature, req.MaxTokens)
 if err != nil {
-log.Printf("[Chat] trace_id=%s 调用 vLLM 失败: %v", traceID, err)
+log.Printf("[Chat] trace_id=%s 实例=%s 调用失败: %v", traceID, inst.ID, err)
 return nil, err
 }
 
-// 4. 填 gRPC 返回(把 instance_id / trace_id 回传,便于排障)
-log.Printf("[Chat] trace_id=%s 成功, completion_tokens=%d", traceID, result.CompletionTokens)
+// 4. 回填 instance_id = 被选中的实例 ID
+log.Printf("[Chat] trace_id=%s 实例=%s 成功, completion_tokens=%d", traceID, inst.ID, result.CompletionTokens)
 return &pb.ChatResponse{
 Content:          result.Content,
 TraceId:          traceID,
-InstanceId:       s.instanceID,
+InstanceId:       inst.ID,
 PromptTokens:     result.PromptTokens,
 CompletionTokens: result.CompletionTokens,
 }, nil
